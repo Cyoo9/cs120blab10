@@ -1,7 +1,7 @@
 /*      Author: Taeho Yoo
  *  Partner(s) Name: 
  *      Lab Section: 23
-*      Assignment: Lab 10  Exercise 2
+*      Assignment: Lab 10  Exercise 3
  *      Exercise Description: [optional - include for your own benefit]
  *
  *      I acknowledge all content contained herein, excluding template or example
@@ -43,11 +43,47 @@ void TimerSet(unsigned long M) {
 	_avr_timer_M = M;
 	_avr_timer_cntcurr = _avr_timer_M;
 }
+
 enum BL_states {BL_Start, bit0, bit1, bit2} BL_state;
 enum TL_states {TL_Start, TL_Off, TL_On} TL_state;
+enum S_States {S_Start, S_Off, S_On} S_state;
 enum C_states {C_Start, combine} C_state;
+
 unsigned char threeLEDs;
 unsigned char blinkingLED;
+unsigned char emitSound;
+
+void emitSoundSM() {
+	switch(S_state) {
+		case S_Start:
+			S_state = S_Off;
+			break;
+		case S_Off:
+			if((~PINA & 0x07) == 0x04) {
+				S_state = S_On;
+			}
+			else { S_state = S_Off; }
+			break;
+		case S_On:
+			if((~PINA & 0x07) == 0x00) {
+				S_state = S_Off;
+			}
+			else { S_state = S_On; }
+			break;
+		default:
+			break;
+	}
+	switch(S_state) {
+		case S_Off:
+			emitSound = 0x00;
+			break;
+		case S_On:
+			emitSound = 0x10;
+			break;
+		default:
+			break;
+	}
+}
 
 void ThreeLEDsSM() {
 	switch(BL_state) {
@@ -119,7 +155,7 @@ void CombineLEDsSM() {
 	}
 	switch(C_state) {
 		case combine:
-			PORTB = threeLEDs | blinkingLED;
+			PORTB = threeLEDs | blinkingLED | emitSound;
 			break;
 		default:
 			break;
@@ -130,14 +166,18 @@ void CombineLEDsSM() {
 int main(void) {
     /* Insert DDR and PORT initializations */
 	DDRB = 0xFF; PORTB = 0x00;
+	DDRA = 0x00; PINA = 0xFF;
+
 	unsigned long BL_time = 300;
 	unsigned long TL_time = 1000;
-	const unsigned long period = 100;
+	unsigned long S_time = 2;
+	const unsigned long period = 2;
+
 	TimerSet(period);
 	TimerOn();
 	BL_state = BL_Start;
 	TL_state = TL_Start;
-
+	S_state = S_Start;
     /* Insert your solution below */
     while (1) {
 	    if(TL_time >= 1000) {
@@ -148,11 +188,16 @@ int main(void) {
 		    ThreeLEDsSM();
 		    BL_time = 0;
 	    }
+	    if(S_time >= 2) {
+		    emitSoundSM();
+		    S_time = 0;
+	    }
 	    CombineLEDsSM();
 	while(!TimerFlag);
 	TimerFlag = 0;
 	TL_time += period;
 	BL_time += period;
+	S_time += period;
     }
     return 0;
 }
