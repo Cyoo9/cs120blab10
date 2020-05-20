@@ -46,26 +46,95 @@ void TimerSet(unsigned long M) {
 
 enum BL_states {BL_Start, bit0, bit1, bit2} BL_state;
 enum TL_states {TL_Start, TL_Off, TL_On} TL_state;
-enum S_States {S_Start, S_Off, S_On} S_state;
+enum S_States {S_Start, S_Off, High, Low} S_state;
 enum C_states {C_Start, combine} C_state;
+enum F_states {F_Start, Neutral, Up, Down} F_state;
 
+double scale[8] = {261.33, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25};
+unsigned short frq;
+unsigned char i;
+unsigned char cnt;
 unsigned char threeLEDs;
 unsigned char blinkingLED;
 unsigned char emitSound;
 
+void frequencySM() {
+	switch(F_state) {
+		case F_Start:
+			i = 0;
+			F_state = Neutral;
+			break;
+		case Neutral:
+			if((~PINA & 0x07) == 1) {
+				F_state = Up;
+			}
+			else if((~PINA & 0x07) == 2) {
+				F_state = Down;
+			}
+			else { F_state = Neutral; }
+			break;
+		case Up:
+			F_state = Neutral;
+			break;
+		case Down:
+			F_state = Neutral;
+			break;
+		default:
+			break;
+	}
+	switch(F_state) {
+		case Up:
+			if(i < 7) {
+				i++;
+				frq = scale[i];
+			}
+			break;
+		case Down:
+			if(i > 0) {
+				i--;
+				frq = scale[i];
+			}
+			break;
+		default:
+			break;
+	}
+}			
+
+
 void emitSoundSM() {
 	switch(S_state) {
 		case S_Start:
+			cnt = 0;
 			S_state = S_Off;
 			break;
 		case S_Off:
 			if((~PINA & 0x07) == 0x04) {
-				S_state = S_On;
+				S_state = High;
+				
 			}
 			else { S_state = S_Off; }
 			break;
-		case S_On:
-			S_state = S_Off;
+		case High:
+			cnt++;
+			if(cnt <= frq) {
+				S_state = High;
+			}
+			else if((~PINA & 0x07) == 0x04) {
+				S_state = Low;
+				cnt = 0;
+			}
+			else { S_state = S_Off; }
+			break;
+		case Low:
+			cnt++;
+			if(cnt <= frq) {
+				S_state = Low;
+			}
+			else if((~PINA & 0x07) == 0x04) {
+				S_state = High;
+				cnt = 0;
+			}
+			else { S_state = S_Off; }
 			break;
 		default:
 			break;
@@ -74,9 +143,11 @@ void emitSoundSM() {
 		case S_Off:
 			emitSound = 0x00;
 			break;
-		case S_On:
+		case High:
 			emitSound = 0x10;
 			break;
+		case Low:
+			emitSound = 0x00;
 		default:
 			break;
 	}
@@ -178,6 +249,7 @@ int main(void) {
 	
     /* Insert your solution below */
     while (1) {
+	    //frequencySM();
 	    if(TL_time >= 1000) {
 		    BlinkingLEDSM();
 		    TL_time = 0;
@@ -190,6 +262,7 @@ int main(void) {
 		    emitSoundSM();
 		    S_time = 0;
 	    }
+	    frequencySM();
 	    CombineLEDsSM();
 	while(!TimerFlag);
 	TimerFlag = 0;
