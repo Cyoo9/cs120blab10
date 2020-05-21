@@ -50,18 +50,17 @@ enum S_States {S_Start, S_Off, High, Low} S_state;
 enum C_states {C_Start, combine} C_state;
 enum F_states {F_Start, Neutral, Up, Down} F_state;
 
-//double scale[8] = {261.33, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25};
-//unsigned short frq;
-unsigned char i;
-unsigned char cnt;
+
 unsigned char threeLEDs;
 unsigned char blinkingLED;
 unsigned char emitSound;
 
+unsigned long speakerPeriod = 2;
+
 void frequencySM() {
 	switch(F_state) {
 		case F_Start:
-			cnt = 0;
+			speakerPeriod = 2;
 			F_state = Neutral;
 			break;
 		case Neutral:
@@ -74,20 +73,20 @@ void frequencySM() {
 			else { F_state = Neutral; }
 			break;
 		case Up:
-			F_state = Neutral;
+			//F_state = Neutral;
 			break;
 		case Down:
-			F_state = Neutral;
+			//F_state = Neutral;
 			break;
 		default:
 			break;
 	}
 	switch(F_state) {
 		case Up:
-			cnt++;
+			speakerPeriod += 100;
 			break;
 		case Down:
-			if(cnt > 0) { cnt--; }
+			if(speakerPeriod > 0) { speakerPeriod -= 100; }
 			break;
 		default:
 			break;
@@ -98,7 +97,6 @@ void frequencySM() {
 void emitSoundSM() {
 	switch(S_state) {
 		case S_Start:
-			i = 0;
 			S_state = S_Off;
 			break;
 		case S_Off:
@@ -109,24 +107,15 @@ void emitSoundSM() {
 			else { S_state = S_Off; }
 			break;
 		case High:
-			i++;
-			if(i <= cnt) {
-				S_state = High;
-			}
-			else if((~PINA & 0x07) == 0x04) {
+			if((~PINA & 0x07) == 0x04) {
 				S_state = Low;
-				i = 0;
 			}
 			else { S_state = S_Off; }
 			break;
 		case Low:
-			//i++;
-			//if(i <= cnt) {
-		//		S_state = Low;
-		//	}
 			if((~PINA & 0x07) == 0x04) {
 				S_state = High;
-				i = 0;
+	
 			}
 			else { S_state = S_Off; }
 			break;
@@ -210,7 +199,7 @@ void CombineLEDsSM() {
 		case C_Start:
 			C_state = combine;
 			break;
-		case combine: //might not need this
+		case combine: 
 			break;
 		default:
 			break;
@@ -232,7 +221,7 @@ int main(void) {
 
 	unsigned long BL_time = 300;
 	unsigned long TL_time = 1000;
-	unsigned long S_time = 2;
+	unsigned long S_time = speakerPeriod;
 	const unsigned long period = 2;
 
 	TimerSet(period);
@@ -243,7 +232,6 @@ int main(void) {
 	
     /* Insert your solution below */
     while (1) {
-	    //frequencySM();
 	    if(TL_time >= 1000) {
 		    BlinkingLEDSM();
 		    TL_time = 0;
@@ -252,12 +240,13 @@ int main(void) {
 		    ThreeLEDsSM();
 		    BL_time = 0;
 	    }
-	    if(S_time >= 2) {
+	    if(S_time >= speakerPeriod) {
+		   // frequencySM();
 		    emitSoundSM();
 		    S_time = 0;
 	    }
-	    frequencySM();
 	    CombineLEDsSM();
+	    frequencySM();
 	while(!TimerFlag);
 	TimerFlag = 0;
 	S_time += period;
