@@ -84,13 +84,13 @@ void ThreeLEDsSM() {
 void BlinkingLEDSM() {
 	switch(TL_state) {
 		case TL_Start:
-			TL_state = TL_On;
-			break;
-		case TL_On: 
 			TL_state = TL_Off;
 			break;
 		case TL_Off:
 			TL_state = TL_On;
+			break;
+		case TL_On:
+			TL_state = TL_Off;
 			break;
 		default:
 			break;
