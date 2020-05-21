@@ -46,7 +46,7 @@ void TimerSet(unsigned long M) {
 
 enum BL_states {BL_Start, bit0, bit1, bit2} BL_state;
 enum TL_states {TL_Start, TL_Off, TL_On} TL_state;
-enum S_States {S_Start, Toggle} S_state;
+enum S_States {S_Start, S_Off, S_On} S_state;
 enum C_states {C_Start, combine} C_state;
 enum F_states {F_Start, Neutral, Up, Down, hold1, hold2} F_state;
 
@@ -105,26 +105,35 @@ void frequencySM() {
 	}
 }			
 
-
 void emitSoundSM() {
-	switch(S_state) {
-		case S_Start:
-			emitSound = 0x00;
-			S_state = Toggle;
-			break;
-		case Toggle:
-			if((~PINA & 0x07) == 4) {
-				emitSound = 0x10;
-			}
-			else {
-				emitSound = 0x00;
-			}
-			S_state = Toggle;
-			break;
-		default:
-			break;
-	}
+        switch(S_state) {
+                case S_Start:
+                        S_state = S_Off;
+                        break;
+                case S_Off:
+                        if((~PINA & 0x07) == 0x04) {
+                                S_state = S_On;
+                        }
+                        else { S_state = S_Off; }
+                        break;
+                case S_On:
+                        S_state = S_Off;
+                        break;
+                default:
+                        break;
+        }
+        switch(S_state) {
+                case S_Off:
+                        emitSound = 0x00;
+                        break;
+                case S_On:
+                        emitSound = 0x10;
+                        break;
+                default:
+                        break;
+        }
 }
+
 
 void ThreeLEDsSM() {
 	switch(BL_state) {
