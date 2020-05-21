@@ -64,22 +64,22 @@ void frequencySM() {
 			F_state = Neutral;
 			break;
 		case Neutral:
-			if((~PINA & 0x04) == 1) {
+			if((~PINA & 0x03) == 1) {
 				F_state = hold1;
 			}
-			else if((~PINA & 0x04) == 2) {
+			else if((~PINA & 0x03) == 2) {
 				F_state = hold2;
 			}
 			else { F_state = Neutral; }
 			break;
 		case hold1:
-			if((~PINA & 0x04) == 1) {
+			if((~PINA & 0x03) == 1) {
 				F_state = hold1;
 			}
 			else { F_state = Up; }
 			break;
 		case hold2:
-			if((~PINA & 0x04) == 2) {
+			if((~PINA & 0x03) == 2) {
 				F_state = hold2;
 			}
 			else { F_state = Down; }
@@ -95,10 +95,10 @@ void frequencySM() {
 	}
 	switch(F_state) {
 		case Up:
-			speakerPeriod += 100;
+			speakerPeriod += 4;
 			break;
 		case Down:
-			if(speakerPeriod > 0) { speakerPeriod -= 100; }
+			if(speakerPeriod > 0) { speakerPeriod -= 4; }
 			break;
 		default:
 			break;
