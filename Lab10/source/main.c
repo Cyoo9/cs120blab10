@@ -98,7 +98,7 @@ void frequencySM() {
 			speakerPeriod += 4;
 			break;
 		case Down:
-			if(speakerPeriod > 0) { speakerPeriod -= 4; }
+			if(speakerPeriod > 2) { speakerPeriod -= 4; }
 			break;
 		default:
 			break;
@@ -220,7 +220,7 @@ int main(void) {
 
 	unsigned long BL_time = 300;
 	unsigned long TL_time = 1000;
-	unsigned long S_time = speakerPeriod;
+	unsigned long S_time = 2;
 	const unsigned long period = 2;
 
 	TimerSet(period);
