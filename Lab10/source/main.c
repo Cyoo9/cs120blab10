@@ -46,9 +46,9 @@ void TimerSet(unsigned long M) {
 
 enum BL_states {BL_Start, bit0, bit1, bit2} BL_state;
 enum TL_states {TL_Start, TL_Off, TL_On} TL_state;
-enum S_States {S_Start, S_Off, High, Low} S_state;
+enum S_States {S_Start, Toggle} S_state;
 enum C_states {C_Start, combine} C_state;
-enum F_states {F_Start, Neutral, Up, Down} F_state;
+enum F_states {F_Start, Neutral, Up, Down, hold1, hold2} F_state;
 
 
 unsigned char threeLEDs;
@@ -65,18 +65,30 @@ void frequencySM() {
 			break;
 		case Neutral:
 			if((~PINA & 0x07) == 1) {
-				F_state = Up;
+				F_state = hold1;
 			}
 			else if((~PINA & 0x07) == 2) {
-				F_state = Down;
+				F_state = hold2;
 			}
 			else { F_state = Neutral; }
 			break;
+		case hold1:
+			if((~PINA & 0x07) == 1) {
+				F_state = hold1;
+			}
+			else { F_state = Up; }
+			break;
+		case hold2:
+			if((~PINA & 0x07) == 2) {
+				F_state = hold2;
+			}
+			else { F_state = Down; }
+			break;
 		case Up:
-			//F_state = Neutral;
+			F_state = Neutral;
 			break;
 		case Down:
-			//F_state = Neutral;
+			F_state = Neutral;
 			break;
 		default:
 			break;
@@ -97,40 +109,18 @@ void frequencySM() {
 void emitSoundSM() {
 	switch(S_state) {
 		case S_Start:
-			S_state = S_Off;
-			break;
-		case S_Off:
-			if((~PINA & 0x07) == 0x04) {
-				S_state = High;
-				
-			}
-			else { S_state = S_Off; }
-			break;
-		case High:
-			if((~PINA & 0x07) == 0x04) {
-				S_state = Low;
-			}
-			else { S_state = S_Off; }
-			break;
-		case Low:
-			if((~PINA & 0x07) == 0x04) {
-				S_state = High;
-	
-			}
-			else { S_state = S_Off; }
-			break;
-		default:
-			break;
-	}
-	switch(S_state) {
-		case S_Off:
 			emitSound = 0x00;
+			S_state = Toggle;
 			break;
-		case High:
-			emitSound = 0x10;
+		case Toggle:
+			if((~PINA & 0x07) == 4) {
+				emitSound = 0x10;
+			}
+			else {
+				emitSound = 0x00;
+			}
+			S_state = Toggle;
 			break;
-		case Low:
-			emitSound = 0x00;
 		default:
 			break;
 	}
