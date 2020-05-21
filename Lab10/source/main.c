@@ -50,8 +50,8 @@ enum S_States {S_Start, S_Off, High, Low} S_state;
 enum C_states {C_Start, combine} C_state;
 enum F_states {F_Start, Neutral, Up, Down} F_state;
 
-double scale[8] = {261.33, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25};
-unsigned short frq;
+//double scale[8] = {261.33, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25};
+//unsigned short frq;
 unsigned char i;
 unsigned char cnt;
 unsigned char threeLEDs;
@@ -61,7 +61,7 @@ unsigned char emitSound;
 void frequencySM() {
 	switch(F_state) {
 		case F_Start:
-			i = 0;
+			cnt = 0;
 			F_state = Neutral;
 			break;
 		case Neutral:
@@ -84,16 +84,10 @@ void frequencySM() {
 	}
 	switch(F_state) {
 		case Up:
-			if(i < 7) {
-				i++;
-				frq = scale[i];
-			}
+			cnt++;
 			break;
 		case Down:
-			if(i > 0) {
-				i--;
-				frq = scale[i];
-			}
+			if(cnt > 0) { cnt--; }
 			break;
 		default:
 			break;
@@ -104,7 +98,7 @@ void frequencySM() {
 void emitSoundSM() {
 	switch(S_state) {
 		case S_Start:
-			cnt = 0;
+			i = 0;
 			S_state = S_Off;
 			break;
 		case S_Off:
@@ -115,24 +109,24 @@ void emitSoundSM() {
 			else { S_state = S_Off; }
 			break;
 		case High:
-			cnt++;
-			if(cnt <= frq) {
+			i++;
+			if(i <= cnt) {
 				S_state = High;
 			}
 			else if((~PINA & 0x07) == 0x04) {
 				S_state = Low;
-				cnt = 0;
+				i = 0;
 			}
 			else { S_state = S_Off; }
 			break;
 		case Low:
-			cnt++;
-			if(cnt <= frq) {
-				S_state = Low;
-			}
-			else if((~PINA & 0x07) == 0x04) {
+			//i++;
+			//if(i <= cnt) {
+		//		S_state = Low;
+		//	}
+			if((~PINA & 0x07) == 0x04) {
 				S_state = High;
-				cnt = 0;
+				i = 0;
 			}
 			else { S_state = S_Off; }
 			break;
