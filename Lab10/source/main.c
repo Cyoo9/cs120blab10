@@ -64,22 +64,22 @@ void frequencySM() {
 			F_state = Neutral;
 			break;
 		case Neutral:
-			if((~PINA & 0x07) == 1) {
+			if((~PINA & 0x04) == 1) {
 				F_state = hold1;
 			}
-			else if((~PINA & 0x07) == 2) {
+			else if((~PINA & 0x04) == 2) {
 				F_state = hold2;
 			}
 			else { F_state = Neutral; }
 			break;
 		case hold1:
-			if((~PINA & 0x07) == 1) {
+			if((~PINA & 0x04) == 1) {
 				F_state = hold1;
 			}
 			else { F_state = Up; }
 			break;
 		case hold2:
-			if((~PINA & 0x07) == 2) {
+			if((~PINA & 0x04) == 2) {
 				F_state = hold2;
 			}
 			else { F_state = Down; }
@@ -216,7 +216,7 @@ void CombineLEDsSM() {
 int main(void) {
     /* Insert DDR and PORT initializations */
 	DDRB = 0xFF; PORTB = 0x00;
-	DDRA = 0x00; PINA = 0xFF;
+	DDRA = 0x00; PORTA = 0xFF;
 
 	unsigned long BL_time = 300;
 	unsigned long TL_time = 1000;
